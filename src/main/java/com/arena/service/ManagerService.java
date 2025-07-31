@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.arena.dto.ApiResponse;
+import com.arena.dto.BookingResDTO;
 import com.arena.dto.ChangePasswordDTO;
 import com.arena.dto.LoginReqDTO;
 import com.arena.dto.ManagerResDTO;
@@ -17,6 +18,8 @@ import com.arena.dto.UpdateTurfDTO;
 
 public interface ManagerService {
 
+	void validateCredentials(String email, String password);
+	
 	ManagerResDTO loginManager(LoginReqDTO dto);
 
 	String changePassword(ChangePasswordDTO dto);
@@ -48,5 +51,9 @@ public interface ManagerService {
 	SlotResDTO updateSlot(Long slotId, SlotReqDTO dto);
 
 	ApiResponse deleteSlotById(Long slotId);
+	
+	//BOOKINGS
+	
+	List<BookingResDTO> getAllBookingsByTurfId(Long turfId);
 	
 }

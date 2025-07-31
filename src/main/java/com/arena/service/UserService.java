@@ -13,9 +13,9 @@ import com.arena.dto.UpdateUserDTO;
 import com.arena.dto.UserReqDTO;
 import com.arena.dto.UserResDTO;
 
-import jakarta.validation.Valid;
-
 public interface UserService {
+	
+	void validateCredentials(String email, String password);
 
 	UserResDTO addUser(UserReqDTO dto);
 
@@ -46,5 +46,9 @@ public interface UserService {
 	BookingResDTO  addBooking(BookingReqDTO dto);
 	
 	List<BookingResDTO> getAllBookingsByUser(Long userId);
+	
+	BookingResDTO cancelBooking(Long bookingId) ;
+	
+	BookingResDTO getBookingById(Long bookingId);
 	
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +52,19 @@ public class UserServiceImpl implements UserService {
 	private ModelMapper modelMapper;
 	private BCryptPasswordEncoder passwordEncoder;
 
+	
+	@Override
+	public void validateCredentials(String email, String password) {
+	    User user = userDao.findByEmail(email)
+	        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+	    if (!passwordEncoder.matches(password, user.getPassword())) {
+	        throw new BadCredentialsException("Invalid password");
+	    }
+	}
+	
+//-------------------------------------------------------------------------------------
+	
 	@Override
 	public UserResDTO addUser(UserReqDTO dto) {
 			//Checking for duplicate email
@@ -331,8 +345,82 @@ public class UserServiceImpl implements UserService {
 
 	
 //-------------------------------------------------------------------------------------------
+	
+	@Override
+	public BookingResDTO cancelBooking(Long bookingId) {
 
+	    Booking booking = bookingDao.findById(bookingId)
+	        .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
 
+	    if (booking.getStatus() == BookingStatus.CANCELLED) {
+	        throw new ApiException("Booking is already cancelled");
+	    }
+
+	    booking.setStatus(BookingStatus.CANCELLED);
+	    booking.setUpdatedOn(LocalDateTime.now());
+
+	    Booking cancelled = bookingDao.save(booking);
+
+	    // Map to response
+	    BookingResDTO res = modelMapper.map(cancelled, BookingResDTO.class);
+
+	    Slot slot = booking.getSlot();
+	    Turf turf = slot.getTurf();
+	    Payment payment = booking.getPayment();
+	    User user = booking.getUser();
+
+	    res.setSlotId(slot.getSlotId());
+	    res.setSlotDate(booking.getBookingDate());
+	    res.setStartTime(slot.getStartTime().toString());
+	    res.setEndTime(slot.getEndTime().toString());
+
+	    res.setTurfId(turf.getTurfId());
+	    res.setTurfName(turf.getName());
+	    res.setPricePerHour(turf.getPricePerHour());
+
+	    res.setUserId(user.getUserid());
+	    res.setUserName(user.getName());
+
+	    res.setPaymentId(payment.getPaymentId());
+	    res.setAmount(payment.getAmount());
+	    res.setPaymentStatus(payment.getStatus());
+	    res.setPaymentDate(payment.getPaidAt());
+	    
+	    return res;
+	}
+
+//-------------------------------------------------------------------------------------------
+
+	@Override
+	public BookingResDTO getBookingById(Long bookingId) {
+	    Booking booking = bookingDao.findById(bookingId)
+	        .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+
+	    Slot slot = booking.getSlot();
+	    Turf turf = slot.getTurf();
+	    User user = booking.getUser();
+	    Payment payment = booking.getPayment();
+
+	    BookingResDTO res = modelMapper.map(booking, BookingResDTO.class);
+	    res.setSlotId(slot.getSlotId());
+	    res.setSlotDate(booking.getBookingDate());
+	    res.setStartTime(slot.getStartTime().toString());
+	    res.setEndTime(slot.getEndTime().toString());
+
+	    res.setTurfId(turf.getTurfId());
+	    res.setTurfName(turf.getName());
+	    res.setPricePerHour(turf.getPricePerHour());
+
+	    res.setUserId(user.getUserid());
+	    res.setUserName(user.getName());
+
+	    res.setPaymentId(payment.getPaymentId());
+	    res.setAmount(payment.getAmount());
+	    res.setPaymentStatus(payment.getStatus());
+	    res.setPaymentDate(payment.getPaidAt());
+
+	    return res;
+	}
 
 	
 //-------------------------------------------------------------------------------------------
