@@ -53,6 +53,16 @@ public class ManagerServiceImpl implements ManagerService {
 	private BCryptPasswordEncoder passwordEncoder;
 
 	
+public ManagerResDTO getByEmail(String email) {
+		
+		return managerDao.findByEmail(email)
+				.map(manager -> modelMapper.map(manager, ManagerResDTO.class))
+				.orElseThrow(()-> new ResourceNotFoundException("Manager not found"));
+
+	}
+	
+//-------------------------------------------------------------------------------------------
+	
 	@Override
 	public void validateCredentials(String email, String password) {
 	    Manager manager = managerDao.findByEmail(email)
@@ -63,7 +73,6 @@ public class ManagerServiceImpl implements ManagerService {
 	    }
 	}
 
-	
 //-------------------------------------------------------------------------------------------
 	
 	@Override
@@ -295,8 +304,6 @@ public class ManagerServiceImpl implements ManagerService {
 	@Override
 	public List<SlotResDTO> getAllSlotsByTurf(Long turfId) {
 		Turf turf = turfDao.findById(turfId).orElseThrow(() -> new ResourceNotFoundException("Turf not found"));
-
-		List<Slot> slots = slotDao.findByTurf(turf);
 
 		return slotDao.findByTurf(turf).stream().map(slot -> {
 			SlotResDTO dto = modelMapper.map(slot, SlotResDTO.class);
